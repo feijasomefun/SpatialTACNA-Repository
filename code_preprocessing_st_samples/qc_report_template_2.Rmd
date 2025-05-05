@@ -1,0 +1,140 @@
+---
+title: "Quality control report"
+output:
+  pdf_document:
+    #keep_tex: true  # for debugging
+
+params:
+  sample_name: "Sample 1"
+  qc_result: NULL
+  qc_plot: NULL
+    
+date: "`r format(Sys.Date(), '%B %d, %Y')`"
+---
+## Table of content
+
+The following function is a quality control for the processing of the spatial samples. 
+
+1) Check NAs in the matrix file
+
+2) For the raw counts file columns:
+  a) the column names are checked to make sure these are probe barcodes 
+  b) this is checked by looking at the length of column name characters 
+  
+3) For the row counts file rows:
+  a) the row names are checked to make sure they are genes 
+  b) the number of characters of genes should be bigger than the row dimensions
+  c) this is assessed using a summary of the character frequencies 
+  d) additionally an example of rows is given 
+  
+4) The dimensions are checked to make sure the genes are rows and columns are barcodes
+
+5) For the post PCA checks:
+  a) All the loading factors for PC1 should be positive or negative (shown as +1 or -1). 
+     A frequency table is made to check the frequency of loading factors
+  b) Additionally for the PC1 removed raw counts table the number of NAs and SD of rows and columns are checked. The SD should never be 0. 
+  
+6) The seurat image needs to be plotted using features (housekeeping genes):
+  a) This is to check the image 
+  b) As well as if the scale factor is correct (this would cause problems with scaling)
+  c) this should be checked for images original high res converted to low res 
+  d) multiple housekeeping genes are used in case one is missing
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+
+```
+\newpage
+# Quality control report for sample:
+
+The report is for the following sample. 
+
+```{r,results = "asis"}
+cat(params$sample_name)
+```
+
+Below you can find the report details:
+
+## Matrix NAs
+```{r, results = "asis"}
+cat("\n\n",params$qc_result[[1]],"\n")
+```
+
+## Rawcount column names
+- Should be barcodes
+
+```{r, results = "asis"}
+cat("\n","The name of the first three columns are:","\n",params$qc_result[[2]],"\n")
+
+cat("\n",params$qc_result[[3]])
+
+```
+```{r}
+params$qc_result[[4]]
+```
+
+## Rawcount row names
+- Should be genes 
+
+```{r, results = "asis"}
+cat("The maximum number of characters in the genes should be greater",
+    "than number of rows.","\n",
+    "The following shows: max character length in rownames, number of rows:", params$qc_result[[5]],
+    "\n\n","Below shows a summary of the row's character length:","\n")
+```
+```{r}
+params$qc_result[[6]]
+```
+```{r, results = "asis"}
+
+cat("\n",params$qc_result[[7]], "\n")
+```
+
+## Raw count dimension's
+- Should be genes*barcodes
+
+```{r, results = "asis"}
+cat("\n",params$qc_result[[8]], "\n")
+```
+
+
+Raw count duplicates and NAs should be 0. Duplicates should cause a feature plot error 
+
+```{r, results = "asis"}
+cat("\n",params$qc_result[[9]], "\n")
+cat("\n",params$qc_result[[10]], "\n")
+```
+
+## Sign PC1 removed
+- Should be the same 
+- Final PC1 removed raw count has: rows as barcode spots and columns as genes  
+
+```{r, results = "asis"}
+params$qc_result[[11]]
+cat("\n",params$qc_result[[12]], "\n")
+cat("\n",params$qc_result[[13]], "\n")
+cat("\n",params$qc_result[[14]], "\n")
+```
+
+## Sum of correlation matrix PCs
+- The sum of the correlation between gene activity scores of PCs should be the same as the number of barcodes - 1 (since PC1 is removed)
+- This is because only the same PCs i.e PC2-PC2 have a correlation of 1 (since they are the same)
+- The rest should be 0 or very near 0 sincs PCs are independant
+```{r, results="asis"}
+cat("\n sum of correlation matrix, number of barcodes: ",params$qc_result[[15]], "\n")
+
+```
+\newpage
+
+## Spatial feature plot of housekeeping genes: GADPH,ACTB, B2M
+- a feature/gene is plotted to check image exists and scale factor is correct 
+
+If this is abnormal it is likely due to a discrepency between hi res image and function 
+This is an indication to double check this in the processing function
+
+```{r}
+
+params$qc_plot
+
+```
